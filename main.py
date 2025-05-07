@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, HTTPException, Query
 from data_loader import find_recipes_by_ingredients
 from typing import List
 import csv
@@ -72,3 +72,44 @@ def get_ingredients():
         print("Using cached ingredient list.")
         
     return sorted(list(ingredient_cache["ingredients"]))
+
+
+
+# Load all recipes from the CSV
+def load_recipes():
+    recipes = []
+    try:
+        with open(CSV_FILE, mode='r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                recipes.append(row)
+    except Exception as e:
+        print("Error reading CSV:", e)
+    return recipes
+
+# Load the recipes once at startup
+all_recipes = load_recipes()
+
+@app.get("/search")
+def search_recipe(query: str = Query(..., min_length=2, description="Name of the recipe to search")):
+    query_lower = query.strip().lower()
+    matches = [r for r in all_recipes if query_lower in r.get("name", "").lower()]
+
+    if not matches:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    results = []
+    for match in matches:
+        results.append({
+            "name": match.get("name", ""),
+            "description": match.get("description", ""),
+            "ingredients": match.get("ingredients", ""),
+            "detailed_ingredients": match.get("detailed_ingredients", ""),
+            "instructions": match.get("instructions", ""),
+            "cuisine": match.get("cuisine", ""),
+            "course": match.get("course", ""),
+            "diet": match.get("diet", "")
+        })
+
+    return results
+
