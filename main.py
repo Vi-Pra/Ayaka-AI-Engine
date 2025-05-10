@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Form, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from data_loader import find_recipes_by_ingredients
 from typing import List
 import csv
@@ -7,6 +8,15 @@ from pathlib import Path
 
 
 app = FastAPI()
+
+# Allow all origins (not recommended for production)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Use specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
