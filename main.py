@@ -8,6 +8,8 @@ import csv
 import os
 from pathlib import Path
 from data_loader import find_recipes_by_ingredients, get_recipe_by_id
+from ai_recipe_generator import generate_ai_recipe
+
 # from  data_loader import RecipeSearchRequest;
 app = FastAPI(
     title="Recipe Finder API",
@@ -51,6 +53,9 @@ class RecipeSearchRequest(BaseModel):
     ingredients: List[str]
     search_mode: str  # strict / fuzzy
 
+class AIRecipeRequest(BaseModel):
+    ingredients: list[str]
+    
 # ✅ Dummy Root API
 @app.get("/")
 def read_root():
@@ -208,3 +213,17 @@ def get_recipe_detail(id: int = FastAPIPath(..., description="Unique Recipe ID")
         "course": recipe.get("course") or "",
         "diet_type": recipe.get("diet") or ""
     })
+
+
+@app.post("/cook_with_ai")
+def cook_with_ai(request: AIRecipeRequest):
+    ingredients = [ingredient.strip().lower() for ingredient in request.ingredients]
+    
+    if not ingredients:
+        raise HTTPException(status_code=400, detail="Ingredients list cannot be empty.")
+
+    # Generate recipe using AI model
+    ai_recipe = generate_ai_recipe(ingredients)
+
+    return JSONResponse(content=jsonable_encoder({"recipe": ai_recipe}))    
+    
