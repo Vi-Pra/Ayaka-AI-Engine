@@ -63,7 +63,7 @@ def find_recipes_by_ingredients(user_ingredients: List[str], search_mode: str) -
         ingredients_raw = row.get('ingredients')
         recipe_ingredients = clean_ingredient_string(ingredients_raw)
 
-        print(recipe_ingredients)
+        #print(recipe_ingredients)
 
         if search_mode == "strict":
             if fuzzy_strict_match(user_ingredients, recipe_ingredients):
